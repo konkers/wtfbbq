@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use bitfield::bitfield;
+use chrono::{DateTime, Utc};
 use pid::Pid;
 use rppal::{
     gpio::{Gpio, OutputPin},
@@ -140,6 +141,17 @@ pub enum Command {
     SetTcIndex(usize),
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct LogEntry {
+    timestamp: DateTime<Utc>,
+    values: Vec<f32>,
+}
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct Log {
+    labels: Vec<String>,
+    entries: Vec<LogEntry>,
+}
+
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Status {
     pub temps: Vec<f32>,
@@ -148,6 +160,7 @@ pub struct Status {
     pub d_term: f32,
     pub output: f32,
     pub config: Config,
+    pub log: Log,
 }
 
 #[derive(Debug)]
@@ -226,6 +239,15 @@ impl Controller {
 
         let reader = TempReader::new(cs_pins, spi);
         let output = OutputTask::new(relay_pin, config.period);
+        let mut labels = vec!["output".to_string()];
+        for i in 0..CS.len() {
+            labels.push(format!("TC {}", i));
+        }
+        let log = Log {
+            labels,
+            entries: Vec::new(),
+        };
+
         let status = Status {
             temps: vec![0.0; CS.len()],
             p_term: 0.0,
@@ -233,6 +255,7 @@ impl Controller {
             d_term: 0.0,
             output: 0.0,
             config: config.clone(),
+            log,
         };
         Ok(Controller {
             reader,
@@ -255,8 +278,25 @@ impl Controller {
         let output = self
             .pid
             .next_control_output(self.status.temps[self.config.tc_index]);
+        let duty = if output.output < 0.0 {
+            0.0
+        } else {
+            output.output / 100.0
+        };
 
-        let duty = output.output / 100.0;
+        let mut values = vec![duty * 100.0];
+        for temp in &self.status.temps {
+            if *temp < 2000.0 {
+                values.push(*temp);
+            } else {
+                values.push(0.0);
+            }
+        }
+        self.status.log.entries.push(LogEntry {
+            timestamp: Utc::now(),
+            values,
+        });
+
         self.output.tick(duty).await?;
 
         self.status.p_term = output.p;
