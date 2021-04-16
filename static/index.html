@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My first Vue app</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="./style.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <div v-if="status !== null">
+                    <div class="temps">
+                        <v-card v-for="(temp, index) in status.temps" class="temp-box" class="mx-auto my-12"
+                            max-width="100" :key="index">
+                            <v-card-title>TC {{index}}</v-card-title>
+                            <v-card-text>{{temp}}</v-card-text>
+                        </v-card>
+                    </div>
+                    <v-card max-width="400">
+                        <v-card-title>Control Status</v-card-title>
+                        <v-card-text>
+                            <v-simple-table max-width="400">
+                                <template v-slot:default>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>Output</b></td>
+                                            <td>{{status.output}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>P term</b></td>
+                                            <td>{{status.p_term}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>I term</b></td>
+                                            <td>{{status.i_term}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>D term</b></td>
+                                            <td>{{status.d_term}}</td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-card-text>
+                    </v-card>
+                    <v-card max-width="400">
+                        <v-card-title>Control Params</v-card-title>
+                        <v-card-text>
+                            <v-simple-table max-width="400">
+                                <template v-slot:default>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>Set Point</b></td>
+                                            <td>{{status.config.set_point}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>P gain</b></td>
+                                            <td>{{status.config.p}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>I gain</b></td>
+                                            <td>{{status.config.i}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>D gain</b></td>
+                                            <td>{{status.config.d}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>TC Index</b></td>
+                                            <td>{{status.config.tc_index}}</td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-card-text>
+                    </v-card>
+                </div>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+            data: {
+                status: null
+            },
+            methods: {
+                fetchStatus() {
+                    axios.get('/status')
+                        .then(response => this.status = response.data)
+                        .catch(error => console.log(error));
+                }
+            },
+            mounted() {
+                this.interval = setInterval(() => {
+                    this.fetchStatus()
+                }, 1000);
+            },
+            beforeDestroy() {
+                clearInterval(this.interval);
+            },
+        })
+
+    </script>
+</body>
+
+</html>
