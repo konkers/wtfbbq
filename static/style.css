@@ -1,7 +1,36 @@
-.temp-box {
+.card {
     margin: 10px;
+    flex-grow: 1;
+    max-width: 380px;
+}
+
+.card-wide {
+    margin: 10px;
+    flex-grow: 2;
+    max-width: 780px;
+}
+
+.center-flex {
+    display: flex;
+    justify-content: center;
+
+}
+
+.main {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .temps {
     display: flex;
+    justify-content: center;
+}
+
+.temp-box {
+    margin: 10px;
+}
+
+.temp-text {
+    font-weight: bold;
+    font-size: 24px;
 }
