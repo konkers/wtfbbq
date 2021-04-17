@@ -69,8 +69,8 @@ pub async fn main() -> Result<()> {
         p: 4.0,
         i: 0.025,
         d: 0.0,
-        set_point: 30.0,
-        tc_index: 2,
+        set_point: 0.0,
+        tc_index: 0,
         period: Duration::from_millis(10000),
     };
     let controller = controller::Controller::new(config)?;
