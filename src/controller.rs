@@ -239,7 +239,7 @@ impl Controller {
 
         let reader = TempReader::new(cs_pins, spi);
         let output = OutputTask::new(relay_pin, config.period);
-        let mut labels = vec!["output".to_string()];
+        let mut labels = vec!["output".to_string(), "set point".to_string()];
         for i in 0..CS.len() {
             labels.push(format!("TC {}", i));
         }
@@ -284,7 +284,7 @@ impl Controller {
             output.output / 100.0
         };
 
-        let mut values = vec![duty * 100.0];
+        let mut values = vec![duty * 100.0, self.config.set_point];
         for temp in &self.status.temps {
             if *temp < 2000.0 {
                 values.push(*temp);
